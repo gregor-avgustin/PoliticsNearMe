@@ -7,6 +7,8 @@ import json
 import sqlite3
 from datetime import datetime
 
+
+# creates a new table with given city name if it doesn't exist in the database already
 def createTable(cityName):
 	connection = sqlite3.connect('cities.db')
 	sqlCursor = connection.cursor()
@@ -24,6 +26,8 @@ def createTable(cityName):
 	sqlCursor.close()
 	connection.close()
 
+
+# calling the API to search for political events in given city
 def searchInfo(cityName):
 	querystring = {"query": ("Politics in " + cityName), "date": "any", "is_virtual": "false",
 				   "start": "0"}
@@ -36,15 +40,13 @@ def searchInfo(cityName):
 	url = "https://real-time-events-search.p.rapidapi.com/search-events"
 	req = requests.get(url, headers = headers, params = querystring)
 
-	# ?? responseJson = req.json()
-
 	return json.loads(req.text)
 
+
+# parses the data that the API returns and uploads it into the database
 def parseInfo(data, cityName):
-	# creating a connection to the database
 	connection = sqlite3.connect('cities.db')
 
-	# creating a cursor to the connection, helps iterate row by row of the table created
 	sqlCursor = connection.cursor()
 
 	for item in data["data"]:
@@ -75,6 +77,8 @@ def parseInfo(data, cityName):
 	sqlCursor.close()
 	connection.close()
 
+
+# goes through the database and removes any events that are past the user's current data and time
 def updateDates(cityName):
 	connection = sqlite3.connect('cities.db')
 	sqlCursor = connection.cursor()
@@ -89,6 +93,8 @@ def updateDates(cityName):
 	sqlCursor.close()
 	connection.close()
 
+
+# a function to print out the events that were found in the city through the API
 def printEvents(cityName):
 	print("\nHere are all the events occurring soon in " + string.capwords(cityName) + ":")
 	connection = sqlite3.connect('cities.db')
@@ -111,8 +117,10 @@ print("Want to learn more about politics in your city? Then this is the app for 
 cityName = input("What city do you live in? ").lower()
 
 createTable(cityName)
+
 data = searchInfo(cityName)
 parseInfo(data, cityName)
+
 updateDates(cityName)
 
 printEvents(cityName)
